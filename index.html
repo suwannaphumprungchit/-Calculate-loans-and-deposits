@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โปรแกรมคำนวณเงินฝาก-เงินกู้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>โปรแกรมคำนวณเงินฝาก-เงินกู้</h1>
+    <p>เงินฝากแบบทบต้น และเงินกู้แบบลดต้นลดดอก</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="เลือกบริการ">
+    <button class="tab" role="tab" id="tab-deposit" aria-selected="true" aria-controls="panel-deposit">เงินฝาก</button>
+    <button class="tab" role="tab" id="tab-loan" aria-selected="false" aria-controls="panel-loan">เงินกู้</button>
+  </div>
+
+  <!-- ===================== เงินฝาก (คำนวณโดย Deposit.py) ===================== -->
+  <div class="panel" id="panel-deposit" role="tabpanel" aria-labelledby="tab-deposit">
+    <section>
+      <h2>ข้อมูลการฝาก</h2>
+      <p class="hint">กรอกข้อมูล แล้วกด "คำนวณ"</p>
+      <form id="form-deposit" novalidate>
+        <div class="field">
+          <label for="d-months">คิดดอกเบี้ยและฝากเพิ่มทุก</label>
+          <div class="input-row"><input type="text" id="d-months" inputmode="decimal" placeholder="เช่น 1, 3, 6, 12"><span class="unit">เดือน</span></div>
+        </div>
+        <div class="field">
+          <label for="d-principal">1. เงินต้นที่ฝาก</label>
+          <div class="input-row"><input type="text" id="d-principal" inputmode="decimal" placeholder="เช่น 10000"><span class="unit">บาท</span></div>
+        </div>
+        <div class="field">
+          <label for="d-years">2. ฝากไปโดยไม่ถอนกี่ปี</label>
+          <div class="input-row"><input type="text" id="d-years" inputmode="decimal" placeholder="เช่น 2"><span class="unit">ปี</span></div>
+        </div>
+        <div class="field">
+          <label for="d-add">3. ฝากเพิ่มทุกรอบ ครั้งละ</label>
+          <div class="input-row"><input type="text" id="d-add" inputmode="decimal" placeholder="ไม่ฝากเพิ่มใส่ 0"><span class="unit">บาท</span></div>
+        </div>
+        <div class="field">
+          <label for="d-rate">อัตราดอกเบี้ยต่อปี</label>
+          <div class="input-row"><input type="text" id="d-rate" inputmode="decimal" placeholder="เช่น 3 หรือ 2.5"><span class="unit">%</span></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">คำนวณ</button>
+          <button type="button" class="btn ghost" data-reset="deposit">ลูกค้าคนต่อไป</button>
+        </div>
+      </form>
+    </section>
+    <section aria-live="polite">
+      <h2>ผลลัพธ์</h2>
+      <div id="d-result"><p class="empty">ผลการคำนวณจะแสดงที่นี่</p></div>
+    </section>
+  </div>
+
+  <!-- ===================== เงินกู้ (คำนวณโดย loan.py) ===================== -->
+  <div class="panel" id="panel-loan" role="tabpanel" aria-labelledby="tab-loan" hidden>
+    <section>
+      <h2>ข้อมูลการกู้</h2>
+      <p class="hint">กรอกข้อมูล แล้วกด "คำนวณ"</p>
+      <form id="form-loan" novalidate>
+        <div class="field">
+          <label for="l-months">ผ่อนชำระทุก</label>
+          <div class="input-row"><input type="text" id="l-months" inputmode="decimal" placeholder="เช่น 1, 3, 6, 12"><span class="unit">เดือน</span></div>
+        </div>
+        <div class="field">
+          <label for="l-amount">1. เงินต้นที่ต้องการกู้</label>
+          <div class="input-row"><input type="text" id="l-amount" inputmode="decimal" placeholder="เช่น 100000"><span class="unit">บาท</span></div>
+        </div>
+        <div class="field">
+          <label for="l-years">2. ผ่อนให้หมดภายในกี่ปี</label>
+          <div class="input-row"><input type="text" id="l-years" inputmode="decimal" placeholder="เช่น 1"><span class="unit">ปี</span></div>
+        </div>
+        <div class="field">
+          <label for="l-rate">3. ธนาคารคิดดอกเบี้ยต่อปี</label>
+          <div class="input-row"><input type="text" id="l-rate" inputmode="decimal" placeholder="เช่น 12"><span class="unit">%</span></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">คำนวณ</button>
+          <button type="button" class="btn ghost" data-reset="loan">ลูกค้าคนต่อไป</button>
+        </div>
+      </form>
+    </section>
+    <section aria-live="polite">
+      <h2>ผลลัพธ์</h2>
+      <div id="l-result"><p class="empty">ผลการคำนวณจะแสดงที่นี่</p></div>
+    </section>
+  </div>
+
+  <footer>หน้านี้ส่งค่าไปคำนวณที่ Deposit.py และ loan.py ผ่าน server.py (ต้องรัน server.py ก่อนใช้งาน)</footer>
+</div>
+
+<script>
+/* index.html ไม่ได้คำนวณเอง: ส่งค่าที่กรอกไปให้ไฟล์ Python แล้วนำผลมาแสดง */
+const $ = (id) => document.getElementById(id);
+const fmt = (x) => x.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const EMPTY = '<p class="empty">ผลการคำนวณจะแสดงที่นี่</p>';
+
+// ส่งข้อมูลไปที่ server.py (ซึ่งเรียก Deposit.py / loan.py อีกที)
+async function callPython(path, body) {
+  let res;
+  try {
+    res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch (e) {
+    throw new Error("ติดต่อโปรแกรม Python ไม่ได้ กรุณารัน server.py ก่อน แล้วเปิดหน้านี้ที่ http://localhost:8000");
+  }
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* ignore */ }
+  if (!res.ok) throw new Error(data.error || "เกิดข้อผิดพลาด");
+  return data;
+}
+const showError = (box, err) => { box.innerHTML = `<div class="error-box" role="alert">${err.message}</div>`; };
+
+function bar(basePct, baseLabel, gainLabel) {
+  return `<div class="split">
+    <div class="bar" role="img" aria-label="${baseLabel} ${basePct.toFixed(0)} เปอร์เซ็นต์ ${gainLabel} ${(100 - basePct).toFixed(0)} เปอร์เซ็นต์">
+      <span class="base" style="width:${basePct}%"></span><span class="gain" style="width:${100 - basePct}%"></span>
+    </div>
+    <div class="legend"><span><i style="background:var(--ink)"></i>${baseLabel}</span><span><i style="background:var(--accent)"></i>${gainLabel}</span></div>
+  </div>`;
+}
+
+/* ===================== เงินฝาก -> Deposit.py ===================== */
+$("form-deposit").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const box = $("d-result");
+  try {
+    const r = await callPython("/api/deposit", {
+      months: $("d-months").value, principal: $("d-principal").value,
+      years: $("d-years").value, add: $("d-add").value, rate: $("d-rate").value,
+    });
+    box.innerHTML = `
+      <div class="headline"><div class="label">เงินรวมเมื่อสิ้นสุดการฝาก</div><div class="amount">${fmt(r.total)} บาท</div></div>
+      <table class="ledger">
+        <tr><td>จำนวนงวดทั้งหมด</td><td>${r.n} งวด (ทุก ${r.label})</td></tr>
+        <tr><td>เงินที่ลูกค้าฝากรวม</td><td>${fmt(r.paid_in)} บาท</td></tr>
+        <tr><td>ดอกเบี้ยรวมที่ได้</td><td>${fmt(r.interest)} บาท</td></tr>
+      </table>
+      ${bar(r.total > 0 ? (r.paid_in / r.total) * 100 : 100, "เงินที่ฝาก", "ดอกเบี้ย")}`;
+  } catch (err) { showError(box, err); }
+});
+
+/* ===================== เงินกู้ -> loan.py ===================== */
+let lastLoan = null;   // เก็บค่าที่กรอกล่าสุด ไว้ใช้ตอนถามหนี้คงค้าง
+
+$("form-loan").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const box = $("l-result");
+  const body = { months: $("l-months").value, amount: $("l-amount").value, years: $("l-years").value, rate: $("l-rate").value };
+  try {
+    const r = await callPython("/api/loan", body);
+    lastLoan = body;
+    const rows = r.schedule.map((s) =>
+      `<tr><td>${s.k}</td><td>${fmt(s.interest)}</td><td>${fmt(s.principal)}</td><td>${fmt(s.balance)}</td></tr>`).join("");
+    box.innerHTML = `
+      <div class="headline"><div class="label">ต้องผ่อนทุก ${r.label} งวดละ</div><div class="amount">${fmt(r.payment)} บาท</div></div>
+      <table class="ledger">
+        <tr><td>จำนวนงวดทั้งหมด</td><td>${r.n} งวด</td></tr>
+        <tr><td>ยอดจ่ายรวมทั้งหมด</td><td>${fmt(r.total_paid)} บาท</td></tr>
+        <tr><td>ดอกเบี้ยรวมที่จ่าย</td><td>${fmt(r.interest)} บาท</td></tr>
+      </table>
+      ${bar((r.principal / r.total_paid) * 100, "เงินต้น", "ดอกเบี้ย")}
+      <div class="extra">
+        <h3>ดูยอดหนี้คงค้างหลังผ่อนไปแล้ว</h3>
+        <div class="input-row">
+          <input type="text" id="l-k" inputmode="numeric" placeholder="0 ถึง ${r.n}" aria-label="ผ่อนไปแล้วกี่งวด">
+          <span class="unit">งวด</span>
+        </div>
+        <button type="button" class="btn ghost" id="l-k-btn">ดูยอดคงค้าง</button>
+        <div class="balance-out" id="l-k-out" role="status"></div>
+      </div>
+      <details>
+        <summary>ดูตารางผ่อนชำระทุกงวด</summary>
+        <div class="table-scroll"><table class="schedule">
+          <thead><tr><th>งวดที่</th><th>ดอกเบี้ย</th><th>ตัดต้น</th><th>หนี้คงค้าง</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+      </details>`;
+
+    $("l-k-btn").addEventListener("click", async () => {
+      const out = $("l-k-out");
+      try {
+        const b = await callPython("/api/loan/balance", { ...lastLoan, k: $("l-k").value });
+        out.style.color = "";
+        out.textContent = `หลังผ่อน ${b.k} งวด ยอดหนี้คงค้าง ${fmt(b.balance)} บาท`;
+      } catch (err) { out.style.color = "var(--error)"; out.textContent = err.message; }
+    });
+  } catch (err) { showError(box, err); }
+});
+
+/* ===================== ปุ่ม "ลูกค้าคนต่อไป" ===================== */
+document.querySelectorAll("[data-reset]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const kind = btn.dataset.reset;
+    $("form-" + kind).reset();
+    $((kind === "deposit" ? "d" : "l") + "-result").innerHTML = EMPTY;
+    $("form-" + kind).querySelector("input").focus();
+  });
+});
+
+/* ===================== สลับแท็บ ===================== */
+function showTab(which) {
+  const isLoan = which === "loan";
+  document.body.classList.toggle("loan-mode", isLoan);
+  $("tab-deposit").setAttribute("aria-selected", String(!isLoan));
+  $("tab-loan").setAttribute("aria-selected", String(isLoan));
+  $("panel-deposit").hidden = isLoan;
+  $("panel-loan").hidden = !isLoan;
+}
+$("tab-deposit").addEventListener("click", () => showTab("deposit"));
+$("tab-loan").addEventListener("click", () => showTab("loan"));
+</script>
+</body>
+</html>
