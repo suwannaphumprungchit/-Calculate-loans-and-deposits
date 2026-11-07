@@ -1,0 +1,733 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>โปรแกรมคำนวณเงินฝาก-เงินกู้</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      font-family: "IBM Plex Sans Thai", sans-serif;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .error-box {
+      color: #b42318;
+      background: #feeceb;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .balance-out {
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    .schedule {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .schedule th,
+    .schedule td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .schedule th:first-child,
+    .schedule td:first-child {
+      text-align: center;
+    }
+
+    .extra {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>โปรแกรมคำนวณเงินฝาก-เงินกู้</h1>
+    <p>เงินฝากแบบทบต้น และเงินกู้แบบลดต้นลดดอก</p>
+  </header>
+
+  <!-- เมนูเลือกประเภท -->
+  <div class="tabs" role="tablist" aria-label="เลือกบริการ">
+    <button class="tab" role="tab" id="tab-deposit"
+      aria-selected="true" aria-controls="panel-deposit">
+      เงินฝาก
+    </button>
+
+    <button class="tab" role="tab" id="tab-loan"
+      aria-selected="false" aria-controls="panel-loan">
+      เงินกู้
+    </button>
+  </div>
+
+  <!-- ================= เงินฝาก ================= -->
+  <div class="panel" id="panel-deposit" role="tabpanel">
+
+    <section>
+      <h2>ข้อมูลการฝาก</h2>
+      <p class="hint">กรอกข้อมูล แล้วกด "คำนวณ"</p>
+
+      <form id="form-deposit" novalidate>
+
+        <div class="field">
+          <label for="d-months">คิดดอกเบี้ยและฝากเพิ่มทุก</label>
+          <div class="input-row">
+            <input type="text" id="d-months"
+              inputmode="decimal" placeholder="เช่น 1, 3, 6, 12">
+            <span class="unit">เดือน</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="d-principal">1. เงินต้นที่ฝาก</label>
+          <div class="input-row">
+            <input type="text" id="d-principal"
+              inputmode="decimal" placeholder="เช่น 10000">
+            <span class="unit">บาท</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="d-years">2. ฝากไปโดยไม่ถอนกี่ปี</label>
+          <div class="input-row">
+            <input type="text" id="d-years"
+              inputmode="decimal" placeholder="เช่น 2">
+            <span class="unit">ปี</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="d-add">3. ฝากเพิ่มทุกรอบ ครั้งละ</label>
+          <div class="input-row">
+            <input type="text" id="d-add"
+              inputmode="decimal" placeholder="ไม่ฝากเพิ่มใส่ 0">
+            <span class="unit">บาท</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="d-rate">อัตราดอกเบี้ยต่อปี</label>
+          <div class="input-row">
+            <input type="text" id="d-rate"
+              inputmode="decimal" placeholder="เช่น 3 หรือ 2.5">
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">คำนวณ</button>
+          <button type="button" class="btn ghost"
+            data-reset="deposit">ลูกค้าคนต่อไป</button>
+        </div>
+
+      </form>
+    </section>
+
+    <section aria-live="polite">
+      <h2>ผลลัพธ์</h2>
+      <div id="d-result">
+        <p class="empty">ผลการคำนวณจะแสดงที่นี่</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ================= เงินกู้ ================= -->
+  <div class="panel" id="panel-loan"
+    role="tabpanel" aria-labelledby="tab-loan" hidden>
+
+    <section>
+      <h2>ข้อมูลการกู้</h2>
+      <p class="hint">กรอกข้อมูล แล้วกด "คำนวณ"</p>
+
+      <form id="form-loan" novalidate>
+
+        <div class="field">
+          <label for="l-months">ผ่อนชำระทุก</label>
+          <div class="input-row">
+            <input type="text" id="l-months"
+              inputmode="decimal" placeholder="เช่น 1, 3, 6, 12">
+            <span class="unit">เดือน</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="l-amount">1. เงินต้นที่ต้องการกู้</label>
+          <div class="input-row">
+            <input type="text" id="l-amount"
+              inputmode="decimal" placeholder="เช่น 100000">
+            <span class="unit">บาท</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="l-years">2. ผ่อนให้หมดภายในกี่ปี</label>
+          <div class="input-row">
+            <input type="text" id="l-years"
+              inputmode="decimal" placeholder="เช่น 1">
+            <span class="unit">ปี</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="l-rate">3. ธนาคารคิดดอกเบี้ยต่อปี</label>
+          <div class="input-row">
+            <input type="text" id="l-rate"
+              inputmode="decimal" placeholder="เช่น 12">
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">คำนวณ</button>
+          <button type="button" class="btn ghost"
+            data-reset="loan">ลูกค้าคนต่อไป</button>
+        </div>
+
+      </form>
+    </section>
+
+    <section aria-live="polite">
+      <h2>ผลลัพธ์</h2>
+      <div id="l-result">
+        <p class="empty">ผลการคำนวณจะแสดงที่นี่</p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    โปรแกรมนี้คำนวณด้วย JavaScript สามารถใช้งานผ่าน GitHub Pages ได้
+    โดยไม่ต้องเปิด Python Server
+  </footer>
+
+</div>
+
+<script>
+/* ===================== ฟังก์ชันพื้นฐาน ===================== */
+
+const $ = (id) => document.getElementById(id);
+
+const fmt = (x) => Number(x).toLocaleString("th-TH", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+const EMPTY = '<p class="empty">ผลการคำนวณจะแสดงที่นี่</p>';
+
+function toNumber(value, name) {
+  const number = Number(String(value).replace(/,/g, "").trim());
+
+  if (String(value).trim() === "" || !Number.isFinite(number)) {
+    throw new Error("กรุณากรอก" + name + "ให้ถูกต้อง");
+  }
+
+  return number;
+}
+
+function validatePeriod(months, years) {
+  if (months <= 0 || !Number.isInteger(months)) {
+    throw new Error("จำนวนเดือนต้องเป็นจำนวนเต็มที่มากกว่า 0");
+  }
+
+  if (years <= 0) {
+    throw new Error("จำนวนปีต้องมากกว่า 0");
+  }
+
+  const n = years * 12 / months;
+
+  if (!Number.isInteger(n)) {
+    throw new Error("จำนวนปีต้องหารด้วยรอบเดือนลงตัว");
+  }
+
+  if (n > 1200) {
+    throw new Error("จำนวนงวดมากเกินไป");
+  }
+
+  return n;
+}
+
+function showError(box, error) {
+  box.innerHTML =
+    `<div class="error-box" role="alert">${error.message}</div>`;
+}
+
+/* ===================== กราฟสัดส่วน ===================== */
+
+function bar(basePct, baseLabel, gainLabel) {
+  basePct = Math.max(0, Math.min(100, basePct));
+
+  return `
+    <div class="split">
+      <div class="bar" role="img">
+        <span class="base" style="width:${basePct}%"></span>
+        <span class="gain" style="width:${100 - basePct}%"></span>
+      </div>
+
+      <div class="legend">
+        <span>
+          <i style="background:var(--ink)"></i>
+          ${baseLabel}
+        </span>
+        <span>
+          <i style="background:var(--accent)"></i>
+          ${gainLabel}
+        </span>
+      </div>
+    </div>`;
+}
+
+/* ===================== คำนวณเงินฝาก ===================== */
+
+/*
+  สูตรเงินฝาก:
+
+  FV = P(1+i)^n + A[((1+i)^n - 1)/i]
+
+  P = เงินต้น
+  i = อัตราดอกเบี้ยต่อรอบ
+  n = จำนวนงวด
+  A = เงินฝากเพิ่มในแต่ละงวด
+
+  กรณีดอกเบี้ยเป็น 0:
+  FV = P + An
+*/
+
+function calculateDeposit(principal, years, add, rate, months) {
+
+  const P = toNumber(principal, "เงินต้น");
+  const Y = toNumber(years, "จำนวนปี");
+  const A = toNumber(add, "เงินฝากเพิ่ม");
+  const R = toNumber(rate, "อัตราดอกเบี้ย");
+  const M = toNumber(months, "จำนวนเดือน");
+
+  if (P < 0 || A < 0 || R < 0) {
+    throw new Error("เงินต้น เงินฝากเพิ่ม และดอกเบี้ยต้องไม่ติดลบ");
+  }
+
+  const n = validatePeriod(M, Y);
+
+  // อัตราดอกเบี้ยต่อรอบ
+  const i = (R / 100) * (M / 12);
+
+  let total;
+
+  if (i === 0) {
+    total = P + A * n;
+  } else {
+    total =
+      P * Math.pow(1 + i, n) +
+      A * (Math.pow(1 + i, n) - 1) / i;
+  }
+
+  const paidIn = P + A * n;
+  const interest = total - paidIn;
+
+  return {
+    label: M + " เดือน",
+    n: n,
+    paid_in: paidIn,
+    interest: interest,
+    total: total
+  };
+}
+
+/* ===================== คำนวณเงินกู้ ===================== */
+
+/*
+  สูตรค่างวดเงินกู้:
+
+  R = Pi / [1 - (1+i)^(-N)]
+
+  P = เงินต้นที่กู้
+  i = อัตราดอกเบี้ยต่อรอบ
+  N = จำนวนงวด
+  R = เงินที่ต้องผ่อนต่องวด
+
+  สูตรยอดหนี้คงเหลือ:
+
+  Bk = P(1+i)^k - R[((1+i)^k - 1)/i]
+*/
+
+function loanPayment(P, i, n) {
+  if (i === 0) {
+    return P / n;
+  }
+
+  return P * i / (1 - Math.pow(1 + i, -n));
+}
+
+function loanBalance(P, i, payment, k) {
+  if (i === 0) {
+    return Math.max(P - payment * k, 0);
+  }
+
+  return Math.max(
+    P * Math.pow(1 + i, k) -
+    payment * (Math.pow(1 + i, k) - 1) / i,
+    0
+  );
+}
+
+function calculateLoan(amount, years, rate, months) {
+
+  const P = toNumber(amount, "เงินต้นที่กู้");
+  const Y = toNumber(years, "จำนวนปี");
+  const R = toNumber(rate, "อัตราดอกเบี้ย");
+  const M = toNumber(months, "จำนวนเดือน");
+
+  if (P <= 0) {
+    throw new Error("เงินต้นที่กู้ต้องมากกว่า 0");
+  }
+
+  if (R < 0) {
+    throw new Error("อัตราดอกเบี้ยต้องไม่ติดลบ");
+  }
+
+  const n = validatePeriod(M, Y);
+
+  // อัตราดอกเบี้ยต่อรอบ
+  const i = (R / 100) * (M / 12);
+
+  const payment = loanPayment(P, i, n);
+
+  let balance = P;
+  let totalInterest = 0;
+  let totalPaid = 0;
+
+  const schedule = [];
+
+  for (let k = 1; k <= n; k++) {
+
+    const before = balance;
+    const interest = before * i;
+
+    let principal = payment - interest;
+
+    // งวดสุดท้ายปรับยอดให้หนี้หมดพอดี
+    if (k === n || principal > balance) {
+      principal = balance;
+    }
+
+    balance = Math.max(balance - principal, 0);
+
+    const actualPayment = principal + interest;
+
+    totalInterest += interest;
+    totalPaid += actualPayment;
+
+    schedule.push({
+      k: k,
+      interest: interest,
+      principal: principal,
+      balance: balance
+    });
+  }
+
+  return {
+    label: M + " เดือน",
+    n: n,
+    payment: payment,
+    total_paid: totalPaid,
+    interest: totalInterest,
+    principal: P,
+    schedule: schedule
+  };
+}
+
+/* ===================== ดูยอดหนี้คงเหลือ ===================== */
+
+function balanceAfter(amount, years, rate, months, k) {
+
+  const P = toNumber(amount, "เงินต้นที่กู้");
+  const Y = toNumber(years, "จำนวนปี");
+  const R = toNumber(rate, "อัตราดอกเบี้ย");
+  const M = toNumber(months, "จำนวนเดือน");
+  const K = toNumber(k, "จำนวนงวด");
+
+  const n = validatePeriod(M, Y);
+
+  if (!Number.isInteger(K) || K < 0 || K > n) {
+    throw new Error("จำนวนงวดต้องอยู่ระหว่าง 0 ถึง " + n);
+  }
+
+  const i = (R / 100) * (M / 12);
+  const payment = loanPayment(P, i, n);
+
+  return {
+    k: K,
+    balance: loanBalance(P, i, payment, K)
+  };
+}
+
+/* ===================== แสดงผลเงินฝาก ===================== */
+
+$("form-deposit").addEventListener("submit", (e) => {
+
+  e.preventDefault();
+
+  const box = $("d-result");
+
+  try {
+
+    const r = calculateDeposit(
+      $("d-principal").value,
+      $("d-years").value,
+      $("d-add").value,
+      $("d-rate").value,
+      $("d-months").value
+    );
+
+    box.innerHTML = `
+      <div class="headline">
+        <div class="label">เงินรวมเมื่อสิ้นสุดการฝาก</div>
+        <div class="amount">${fmt(r.total)} บาท</div>
+      </div>
+
+      <table class="ledger">
+        <tr>
+          <td>จำนวนงวดทั้งหมด</td>
+          <td>${r.n} งวด (ทุก ${r.label})</td>
+        </tr>
+
+        <tr>
+          <td>เงินที่ลูกค้าฝากรวม</td>
+          <td>${fmt(r.paid_in)} บาท</td>
+        </tr>
+
+        <tr>
+          <td>ดอกเบี้ยรวมที่ได้</td>
+          <td>${fmt(r.interest)} บาท</td>
+        </tr>
+      </table>
+
+      ${bar(
+        r.total > 0 ? (r.paid_in / r.total) * 100 : 100,
+        "เงินที่ฝาก",
+        "ดอกเบี้ย"
+      )}
+    `;
+
+  } catch (err) {
+    showError(box, err);
+  }
+});
+
+/* ===================== แสดงผลเงินกู้ ===================== */
+
+let lastLoan = null;
+
+$("form-loan").addEventListener("submit", (e) => {
+
+  e.preventDefault();
+
+  const box = $("l-result");
+
+  try {
+
+    const body = {
+      months: $("l-months").value,
+      amount: $("l-amount").value,
+      years: $("l-years").value,
+      rate: $("l-rate").value
+    };
+
+    const r = calculateLoan(
+      body.amount,
+      body.years,
+      body.rate,
+      body.months
+    );
+
+    lastLoan = body;
+
+    const rows = r.schedule.map((s) => `
+      <tr>
+        <td>${s.k}</td>
+        <td>${fmt(s.interest)}</td>
+        <td>${fmt(s.principal)}</td>
+        <td>${fmt(s.balance)}</td>
+      </tr>
+    `).join("");
+
+    box.innerHTML = `
+      <div class="headline">
+        <div class="label">ต้องผ่อนทุก ${r.label} งวดละ</div>
+        <div class="amount">${fmt(r.payment)} บาท</div>
+      </div>
+
+      <table class="ledger">
+        <tr>
+          <td>จำนวนงวดทั้งหมด</td>
+          <td>${r.n} งวด</td>
+        </tr>
+
+        <tr>
+          <td>ยอดจ่ายรวมทั้งหมด</td>
+          <td>${fmt(r.total_paid)} บาท</td>
+        </tr>
+
+        <tr>
+          <td>ดอกเบี้ยรวมที่จ่าย</td>
+          <td>${fmt(r.interest)} บาท</td>
+        </tr>
+      </table>
+
+      ${bar(
+        r.total_paid > 0
+          ? (r.principal / r.total_paid) * 100
+          : 100,
+        "เงินต้น",
+        "ดอกเบี้ย"
+      )}
+
+      <div class="extra">
+        <h3>ดูยอดหนี้คงค้างหลังผ่อนไปแล้ว</h3>
+
+        <div class="input-row">
+          <input type="text" id="l-k"
+            inputmode="numeric"
+            placeholder="0 ถึง ${r.n}"
+            aria-label="ผ่อนไปแล้วกี่งวด">
+
+          <span class="unit">งวด</span>
+        </div>
+
+        <button type="button" class="btn ghost" id="l-k-btn">
+          ดูยอดคงค้าง
+        </button>
+
+        <div class="balance-out" id="l-k-out" role="status"></div>
+      </div>
+
+      <details>
+        <summary>ดูตารางผ่อนชำระทุกงวด</summary>
+
+        <div class="table-scroll">
+          <table class="schedule">
+            <thead>
+              <tr>
+                <th>งวดที่</th>
+                <th>ดอกเบี้ย</th>
+                <th>ตัดต้น</th>
+                <th>หนี้คงค้าง</th>
+              </tr>
+            </thead>
+
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </details>
+    `;
+
+    // ปุ่มตรวจสอบยอดหนี้คงเหลือ
+    $("l-k-btn").addEventListener("click", () => {
+
+      const out = $("l-k-out");
+
+      try {
+
+        const b = balanceAfter(
+          lastLoan.amount,
+          lastLoan.years,
+          lastLoan.rate,
+          lastLoan.months,
+          $("l-k").value
+        );
+
+        out.style.color = "";
+        out.textContent =
+          `หลังผ่อน ${b.k} งวด ยอดหนี้คงค้าง ${fmt(b.balance)} บาท`;
+
+      } catch (err) {
+
+        out.style.color = "var(--error)";
+        out.textContent = err.message;
+
+      }
+    });
+
+  } catch (err) {
+    showError(box, err);
+  }
+});
+
+/* ===================== ปุ่มลูกค้าคนต่อไป ===================== */
+
+document.querySelectorAll("[data-reset]").forEach((btn) => {
+
+  btn.addEventListener("click", () => {
+
+    const kind = btn.dataset.reset;
+
+    $("form-" + kind).reset();
+
+    $(
+      (kind === "deposit" ? "d" : "l") + "-result"
+    ).innerHTML = EMPTY;
+
+    if (kind === "loan") {
+      lastLoan = null;
+    }
+
+    $("form-" + kind).querySelector("input").focus();
+  });
+});
+
+/* ===================== สลับแท็บ ===================== */
+
+function showTab(which) {
+
+  const isLoan = which === "loan";
+
+  document.body.classList.toggle("loan-mode", isLoan);
+
+  $("tab-deposit").setAttribute(
+    "aria-selected",
+    String(!isLoan)
+  );
+
+  $("tab-loan").setAttribute(
+    "aria-selected",
+    String(isLoan)
+  );
+
+  $("panel-deposit").hidden = isLoan;
+  $("panel-loan").hidden = !isLoan;
+}
+
+$("tab-deposit").addEventListener("click", () => {
+  showTab("deposit");
+});
+
+$("tab-loan").addEventListener("click", () => {
+  showTab("loan");
+});
+</script>
+
+</body>
+</html>
