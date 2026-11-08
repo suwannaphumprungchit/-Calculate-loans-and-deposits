@@ -228,10 +228,13 @@
 </div>
 
 <script>
+
+
 /* ===================== ฟังก์ชันพื้นฐาน ===================== */
-
 const $ = (id) => document.getElementById(id);
-
+//Number(x) แปลงค่าให้เป็นตัวเลขก่อน
+//.toLocaleString("th-TH", ...) แสดงตัวเลขตามรูปแบบไทย คือมีเครื่องหมายคอมมาคั่นหลักพัน
+//minimumFractionDigits: 2 และ maximumFractionDigits: 2 บังคับให้มีทศนิยม 2 ตำแหน่งพอดี
 const fmt = (x) => Number(x).toLocaleString("th-TH", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2
@@ -239,6 +242,10 @@ const fmt = (x) => Number(x).toLocaleString("th-TH", {
 
 const EMPTY = '<p class="empty">ผลการคำนวณจะแสดงที่นี่</p>';
 
+//String(value) แปลงเป็นข้อความก่อน
+//.replace(/,/g, "") ลบคอมมาทั้งหมด (g = ทุกตัว) ผู้ใช้จึงพิมพ์ 100,000 ได้
+//.trim() ตัดช่องว่างหัวท้าย
+//Number(...) แปลงเป็นตัวเลข
 function toNumber(value, name) {
   const number = Number(String(value).replace(/,/g, "").trim());
 
@@ -258,10 +265,11 @@ function validatePeriod(months, years) {
     throw new Error("จำนวนปีต้องมากกว่า 0");
   }
 
-  const n = years * 12 / months;
+  const totalMonths = years * 12;
+  const n = Math.floor(totalMonths / months + 1e-9);
 
-  if (!Number.isInteger(n)) {
-    throw new Error("จำนวนปีต้องหารด้วยรอบเดือนลงตัว");
+  if (n < 1) {
+    throw new Error("ระยะเวลาทั้งหมดสั้นกว่า 1 รอบ (" + months + " เดือน)");
   }
 
   if (n > 1200) {
@@ -270,7 +278,6 @@ function validatePeriod(months, years) {
 
   return n;
 }
-
 function showError(box, error) {
   box.innerHTML =
     `<div class="error-box" role="alert">${error.message}</div>`;
@@ -318,7 +325,6 @@ function bar(basePct, baseLabel, gainLabel) {
 */
 
 function calculateDeposit(principal, years, add, rate, months) {
-
   const P = toNumber(principal, "เงินต้น");
   const Y = toNumber(years, "จำนวนปี");
   const A = toNumber(add, "เงินฝากเพิ่ม");
