@@ -1,83 +1,45 @@
+// deposit.js - โปรแกรมคำนวณเงินฝาก (ดอกเบี้ยทบต้น ฝากเพิ่มทุกรอบ)
+// วิธีรัน: node deposit.js
+const readline = require("readline/promises");
 
-// ============================================================
-// deposit.js - ส่วนคำนวณเงินฝาก (ดอกเบี้ยทบต้น ฝากเพิ่มทุกงวด)
-// ============================================================
+async function calculateSavings() {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-// ส่วนที่ 1: ตรวจสอบค่าที่รับเข้ามา
-function toNumber(value, name, minimum = 0, strict = false, maximum = null) {
-    const v = Number(String(value).replace(/,/g, "").trim());
+  console.log("\n--- Savings Calculator ---");
+  let p = parseFloat(await rl.question("Enter the initial deposit amount: "));
+  const r = parseFloat(await rl.question("Enter the annual interest rate (percent): "));
+  const m = parseFloat(await rl.question("Enter the deposit amount per period: "));
+  const k = parseFloat(await rl.question("Deposit and compound every how many months (e.g. 1, 3, 6, 10): "));
+  const totalMonths = parseFloat(await rl.question("Enter the total number of months: "));
+  rl.close();
 
-    if (String(value).trim() === "" || !Number.isFinite(v)) {
-        throw new Error(`${name}: กรุณากรอกเป็นตัวเลข`);
-    }
+  if ([p, r, m, k, totalMonths].some(Number.isNaN) || k <= 0 || totalMonths <= 0) {
+    console.log("Invalid input. Please enter numbers only (period and total months must be more than 0).");
+    return;
+  }
 
-    if (strict ? v <= minimum : v < minimum) {
-        throw new Error(
-            `${name}: ต้อง${strict ? "มากกว่า" : "ไม่น้อยกว่า"} ${minimum.toLocaleString("th-TH")}`
-        );
-    }
+  // จำนวนงวดเต็ม: ไม่ต้องหารลงตัว ถ้ามีเดือนเหลือไม่ครบงวดจะไม่นับ
+  const n = Math.floor(totalMonths / k + 1e-9);
+  if (n < 1) {
+    console.log(`Total months (${totalMonths}) is less than one period (${k} months).`);
+    return;
+  }
 
-    if (maximum !== null && v > maximum) {
-        throw new Error(`${name}: ต้องไม่เกิน ${maximum.toLocaleString("th-TH")}`);
-    }
+  const i = (r / 100) * (k / 12); // ดอกเบี้ยต่อ 1 งวด
 
-    return v;
+  for (let j = 1; j <= n; j++) {
+    p = p * (1 + i) + m;
+    console.log(`Month ${+(j * k).toFixed(6)}: ${p.toFixed(2)}`);
+  }
+
+  const usedMonths = +(n * k).toFixed(6);
+  console.log(`\nTotal savings after ${usedMonths} months: ${p.toFixed(2)}`);
+
+  const leftover = +(totalMonths - usedMonths).toFixed(6);
+  if (leftover > 0) {
+    console.log(`Note: ${totalMonths} months is not a multiple of ${k}. ` +
+      `${n} full periods were counted; the remaining ${leftover} month(s) were not counted.`);
+  }
 }
 
-
-// ส่วนที่ 2: สูตรคำนวณเงินฝาก
-function futureValue(P, i, n, D) {
-    if (i === 0) {
-        return P + D * n;
-    }
-
-    const growth = Math.pow(1 + i, n);
-
-    return P * growth + D * (growth - 1) / i;
-}
-
-
-// ส่วนที่ 3: ฟังก์ชันคำนวณหลัก
-function calculateDeposit(principal, years, add, rate, months) {
-
-    const mo = toNumber(months, "รอบการฝาก (จำนวนเดือน)", 0, true, 1200);
-    const P = toNumber(principal, "เงินต้น");
-    const t = toNumber(years, "จำนวนปี", 0, true, 100);
-    const D = toNumber(add, "เงินฝากเพิ่ม");
-    const r = toNumber(rate, "อัตราดอกเบี้ย", 0, false, 100);
-
-    // ดอกเบี้ยต่อหนึ่งงวด
-    const i = r / 100 * mo / 12;
-
-    // จำนวนงวดทั้งหมด
-    const nExact = t * 12 / mo;
-    const n = Math.round(nExact);
-
-    if (n < 1) {
-        throw new Error("จำนวนปี: สั้นเกินไป ไม่ครบ 1 งวด");
-    }
-
-    if (Math.abs(nExact - n) > 1e-6) {
-        throw new Error(
-            `จำนวนปี: ${t} ปี (${t * 12} เดือน) หารด้วยรอบ ${mo} เดือนไม่ลงตัว กรุณาปรับให้ลงตัว`
-        );
-    }
-
-    // คำนวณเงินรวม
-    const total = futureValue(P, i, n, D);
-
-    // เงินฝากรวม
-    const paidIn = P + D * n;
-
-    // ดอกเบี้ยรวม
-    const interest = total - paidIn;
-
-    return {
-        label: `${mo} เดือน`,
-        n: n,
-        paid_in: paidIn,
-        interest: interest,
-        total: total
-    };
-}
-
+calculateSavings();
